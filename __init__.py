@@ -80,6 +80,8 @@ class _MySubprocessProtocol(asyncio.SubprocessProtocol):
                 self._linebuffer.close()
                 self._linebuffer = io.StringIO()
 
+        super().pipe_data_received(fd, data)  # follow internal paths
+
 
 async def _tail_subprocess(shared_queue, cmdline):
     """launches a command line in a subprocess
@@ -103,7 +105,8 @@ async def _tail_subprocess(shared_queue, cmdline):
     loop = asyncio.get_event_loop()
 
     transport, _ = await loop.subprocess_exec(
-        lambda: _MySubprocessProtocol(shared_queue=shared_queue), *cmdline
+        lambda: _MySubprocessProtocol(shared_queue=shared_queue),
+        *cmdline,
     )
 
     subproc = transport.get_extra_info("subprocess")  # popen instance
