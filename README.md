@@ -50,5 +50,5 @@ if __name__ == "__main__":
             print("process terminated! and queue is empty")
             break
         else:
-            print(next_line, end="")
+            print(next_line)
 ```

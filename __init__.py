@@ -74,8 +74,9 @@ class _MySubprocessProtocol(asyncio.SubprocessProtocol):
         """
         for byte in data:
             char = chr(byte)
-            self._linebuffer.write(char)
-            if char == "\n":
+            if char != "\n":
+                self._linebuffer.write(char)
+            else:
                 self._queue.put_nowait(self._linebuffer.getvalue())
                 self._linebuffer.close()
                 self._linebuffer = io.StringIO()
@@ -196,4 +197,4 @@ if __name__ == "__main__":
             print("process terminated! and queue is empty")
             break
         else:
-            print(next_line, end="")
+            print(next_line)
