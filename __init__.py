@@ -152,7 +152,9 @@ class ProcessQueue:
         self._queue = multiprocessing.Queue()
 
         self._process = multiprocessing.Process(
-            target=asyncio.run, args=(_tail_subprocess(self._queue, cmdline),)
+            target=asyncio.run,
+            args=(_tail_subprocess(self._queue, cmdline),),
+            daemon=True,
         )
         # self._process = multiprocessing.Process(
         #     target=__run_tail_subprocess_asynchronously,
