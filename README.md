@@ -34,7 +34,8 @@ Warning
 Use communicate() rather than .stdin.write, .stdout.read or .stderr.read to
 avoid deadlocks due to any of the other OS pipe buffers filling up and blocking
 the child process. 
-```[1]
+```
+[1]
 
 This implementation works around the standard implementation by reading
 from the file descriptors as soon as data is written to them instead
