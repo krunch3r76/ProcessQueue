@@ -1,6 +1,6 @@
 # ProcessQueue
 A queue that fills with the line by line output of a subprocess.
-Upon instantation is runs the command line specified and starts filling
+Upon instantation it runs the command line specified and starts filling
 the queue.
 
 ProcessQueue utilizes a multiprocess.Queue as a shared data structure that
