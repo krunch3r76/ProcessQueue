@@ -46,13 +46,13 @@ class _MySubprocessProtocol(asyncio.SubprocessProtocol):
     outputs! REVIEW pipe_data_received
     """
 
-    def __init__(self, *args, sharedQueue, **kwargs):
+    def __init__(self, *args, shared_queue, **kwargs):
         """initializes to reference the shared queue and a fresh linebuffer memory stream
 
         Args:
-            sharedQueue: the interprocess python queue
+            shared_queue: the interprocess python queue
         """
-        self._queue = sharedQueue
+        self._queue = shared_queue
         self._linebuffer = io.StringIO()
         super().__init__(*args, **kwargs)
 
@@ -81,13 +81,13 @@ class _MySubprocessProtocol(asyncio.SubprocessProtocol):
                 self._linebuffer = io.StringIO()
 
 
-async def _tail_subprocess(sharedQueue, cmdline):
+async def _tail_subprocess(shared_queue, cmdline):
     """launches a command line in a subprocess
 
     Launches then loops until the subprocess has terminated.
 
     Args:
-        sharedQueue: the shared queue with the main thread
+        shared_queue: the shared queue with the main thread
         cmdline: the list of strings representing the full command to be run
 
     Returns:
@@ -103,13 +103,13 @@ async def _tail_subprocess(sharedQueue, cmdline):
     loop = asyncio.get_event_loop()
 
     transport, _ = await loop.subprocess_exec(
-        lambda: _MySubprocessProtocol(sharedQueue=sharedQueue), *cmdline
+        lambda: _MySubprocessProtocol(shared_queue=shared_queue), *cmdline
     )
 
-    subprocess = transport.get_extra_info("subprocess")  # popen instance
+    subproc = transport.get_extra_info("subprocess")  # popen instance
 
     # loop
-    while subprocess.poll() is None:
+    while subproc.poll() is None:
         await asyncio.sleep(1)
 
     # process has ended
