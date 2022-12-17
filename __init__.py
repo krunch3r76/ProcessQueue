@@ -119,6 +119,20 @@ async def _tail_subprocess(shared_queue, cmdline):
     # process has ended
 
 
+def _run_tail_subprocess_asynchronously(sharedQueue, cmdline):
+    """callback for multiprocessing.Process to launch run _tail_subprocess asynchronously
+
+    Args:
+        sharedQueue: the shared queue to which lines are added
+        cmdline: the command line to run as by popen
+
+    For windows compatibility, the callback needs to be defined for multiprocessing module
+    to run a function asynchronously outside of an asynchronous context.
+    """
+
+    asyncio.run(_tail_subprocess(sharedQueue, cmdline))
+
+
 class ProcessQueue:
     """execute a subprocess and queue its output line by line non-blocking
 
@@ -146,23 +160,16 @@ class ProcessQueue:
                 to execute
         """
 
-        # def __run_tail_subprocess_asynchronously(sharedQueue, cmdline):
-        #     asyncio.run(_tail_subprocess(sharedQueue, cmdline))
-
         self._queue = multiprocessing.Queue()
 
         self._process = multiprocessing.Process(
-            target=asyncio.run,
-            args=(_tail_subprocess(self._queue, cmdline),),
+            target=_run_tail_subprocess_asynchronously,
+            args=(
+                self._queue,
+                cmdline,
+            ),
             daemon=True,
         )
-        # self._process = multiprocessing.Process(
-        #     target=__run_tail_subprocess_asynchronously,
-        #     args=(
-        #         self._queue,
-        #         cmdline,
-        #     ),
-        # )
         self._process.start()
 
     def get_nowait(self):
@@ -193,6 +200,7 @@ class ProcessQueue:
 # example usage
 if __name__ == "__main__":
     processQueue = ProcessQueue(
+        # cmdline=["D:/winbin/golem/yagna.exe", "service", "run"]
         cmdline=["/home/golem/.local/bin/golemsp", "run", "--payment-network=testnet"]
     )
     while True:
