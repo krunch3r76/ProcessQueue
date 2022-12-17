@@ -102,7 +102,7 @@ async def _tail_subprocess(sharedQueue, cmdline):
     # )
     loop = asyncio.get_event_loop()
 
-    transport, protocol = await loop.subprocess_exec(
+    transport, _ = await loop.subprocess_exec(
         lambda: _MySubprocessProtocol(sharedQueue=sharedQueue), *cmdline
     )
 
