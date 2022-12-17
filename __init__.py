@@ -145,14 +145,22 @@ class ProcessQueue:
             cmdline: a sequence (e.g. list) of text commands representing the full command line
                 to execute
         """
+
+        # def __run_tail_subprocess_asynchronously(sharedQueue, cmdline):
+        #     asyncio.run(_tail_subprocess(sharedQueue, cmdline))
+
         self._queue = multiprocessing.Queue()
+
         self._process = multiprocessing.Process(
-            target=lambda conn, cmdline: asyncio.run(
-                _tail_subprocess(self._queue, cmdline)
-            ),
-            args=(self._queue, cmdline),
-            daemon=True,
+            target=asyncio.run, args=(_tail_subprocess(self._queue, cmdline),)
         )
+        # self._process = multiprocessing.Process(
+        #     target=__run_tail_subprocess_asynchronously,
+        #     args=(
+        #         self._queue,
+        #         cmdline,
+        #     ),
+        # )
         self._process.start()
 
     def get_nowait(self):
