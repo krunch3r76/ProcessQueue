@@ -3,6 +3,9 @@ A queue that fills with the line by line output of a subprocess.
 Upon instantation it runs the command line specified and starts filling
 the queue.
 
+Tested on linux and windows 11 with Python 3.9 and above. Minimum Python
+version expected to be 3.7.
+
 ProcessQueue utilizes a multiprocess.Queue as a shared data structure that
 is written to from a subprocess instantiated in the multiprocess thread.
 The module implements a custom ProtocolFactory (via the asyncio subprocess
