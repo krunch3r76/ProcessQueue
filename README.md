@@ -26,11 +26,19 @@ tl;dr: python's asyncio subprocess routines are overridden to pass data
 to a multiprocess.Queue instead of a streamreader PIPE.
 
 The problem this module solves is that the Python standard way of reading
-the output of a subprocess will always present a risk of a deadlock
-depending on whether the StreamReader is accessed while the OS is filling
-pipes. (Add python docs reference here later). This implementation avoids
-the "polling" by automatically filling a queue when the data becomes
-available, the "polling" the queue itself does not trigger any OS event.
+the output of a subprocess will always present a risk of a deadlock. The
+Python docs give this warning:
+```
+Warning
+
+Use communicate() rather than .stdin.write, .stdout.read or .stderr.read to
+avoid deadlocks due to any of the other OS pipe buffers filling up and blocking
+the child process. 
+```[1]
+
+This implementation works around the standard implementation by reading
+from the file descriptors as soon as data is written to them instead
+of relying on the popen/StreamReader paradigm.
 
 # example usage
 ```python
@@ -52,3 +60,6 @@ if __name__ == "__main__":
         else:
             print(next_line)
 ```
+
+References:
+[1] https://docs.python.org/3/library/subprocess.html#subprocess.Popen.stderr
