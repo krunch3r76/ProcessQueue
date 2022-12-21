@@ -114,7 +114,7 @@ async def _tail_subprocess(shared_queue, cmdline):
 
     # loop
     while subproc.poll() is None:
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)
 
     # process has ended
 
