@@ -17,10 +17,7 @@ import queue  # queue.empty
             reads chunk
             parses lines
                 adds parsed lines into a multiprocess.queue
-                preserves incomplete lines in buffer
-
-    todo:
-        use a specific exception for when the listener file exists
+                preserves incomplete line in buffer
 """
 
 
@@ -95,7 +92,7 @@ class UnixSocketQueue:
         self.socket_filepath_obj = Path(socket_filepath).resolve()  # normalize
 
         if self.socket_filepath_obj.exists():
-            raise Exception(
+            raise FileExistsError(
                 f"CANNOT CREATE LISTENER AT {self.socket_filepath_obj}, file exists!"
             )
 
@@ -121,7 +118,8 @@ class UnixSocketQueue:
 
     def __del__(self):
         # close and unlink the socket created upon initialization
-        self.socket_obj.close()
+        if self.socket_filepath_obj.is_socket():
+            self.socket_obj.close()
         self.socket_filepath_obj.unlink(True)
 
 
