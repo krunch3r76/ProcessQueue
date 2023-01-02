@@ -4,12 +4,6 @@
 # author: krunch3r (KJM github.com/krunch3r76)
 # license: General Poetic License (GPL3)
 
-import multiprocessing
-import os, io
-from pathlib import Path
-import socket
-import queue  # queue.empty
-
 """
     functor 
         creates a unix socket for listening
@@ -20,7 +14,21 @@ import queue  # queue.empty
                 preserves incomplete line in buffer
 """
 
+#############################################
+#               imports                     #
+#############################################
+import multiprocessing
+import os, io
+from pathlib import Path
+import socket
+import queue  # queue.empty
 
+# /imports #
+
+#############################################
+#               locals                      #
+#############################################
+# local logging
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,8 +45,9 @@ formatter = logging.Formatter(
 handler.setFormatter(formatter)
 
 logger.addHandler(handler)
+# / end local logging
 
-
+# private functions
 def _strip_ansi(text):
     # strip ansi codes from text and return
     # credit. chat.openai.com
@@ -48,6 +57,10 @@ def _strip_ansi(text):
     return stripped_text
 
 
+# /private functions
+
+
+# private classes
 class _SocketListener:
     # functor that reads socket data into a buffer and parses lines into a (shared) queue
 
@@ -56,7 +69,7 @@ class _SocketListener:
         Args:
             shared_queue: shared queue
             socket: socket object (not listening, not connected)
-            strip_ansi: flag to strip ansi characters before adding lines to queue
+            strip_ansi: flag to strip ansi escape codes before adding lines to queue
         """
         self.shared_queue = shared_queue
         self.socket = socket
@@ -88,6 +101,14 @@ class _SocketListener:
             self._parse_buffer()
 
 
+# /private classes
+
+# / locals #
+
+
+#########################################
+#           exports                     #
+#########################################
 class UnixSocketQueue:
     """
     create a socket that accepts a connection then reads lines into a shared queue
@@ -142,6 +163,9 @@ class UnixSocketQueue:
         self.socket_filepath_obj.unlink(True)
 
 
+#####################################
+#           example logic           #
+#####################################
 if __name__ == "__main__":
     unixSocketQueue = UnixSocketQueue("/tmp/golemsp.sock")
 
