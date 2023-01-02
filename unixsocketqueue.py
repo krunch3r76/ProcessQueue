@@ -3,19 +3,17 @@ import multiprocessing
 import os, io
 from pathlib import Path
 import socket
+import queue  # queue.empty
 
 """
     functor 
         creates a unix socket for listening
-        manages a multiprocess that continuously reads from the unix socker
-            buffers data
+        manages a multiprocess that continuously reads from the unix socket
+            reads chunk
             parses lines
                 adds parsed lines into a multiprocess.queue
+                preserves incomplete lines in buffer
 
-    requirements:
-        overwrite dangling listeners
-            challenge: ensure listener is in fact dangling
-        consider making the unixsocket file non-blocking (if needed tho multiprocessing)
     todo:
         use a specific exception for when the listener file exists
 """
@@ -34,6 +32,12 @@ class _SocketListener:
     # functor that reads socket data into a buffer and parses lines into a (shared) queue
 
     def __init__(self, shared_queue: multiprocessing.Queue, socket, strip_ansi):
+        """
+        Args:
+            shared_queue: shared queue
+            socket: socket object (not listening, not connected)
+            strip_ansi: flag to strip ansi characters before adding lines to queue
+        """
         self.shared_queue = shared_queue
         self.socket = socket
         self.buffer = io.StringIO()
@@ -49,9 +53,9 @@ class _SocketListener:
             else:
                 self.shared_queue.put_nowait(_strip_ansi(current_line[:-1]))
             current_line = self.buffer.readline()
-        self.buffer.close()
+        self.buffer.close()  # delete buffer
         self.buffer = io.StringIO()
-        self.buffer.write(current_line)  # put back partial line
+        self.buffer.write(current_line)  # put partial line into new buffer
 
     def __call__(self):
         # wait for connection then read next available into parser
@@ -65,6 +69,16 @@ class _SocketListener:
 
 
 class UnixSocketQueue:
+    """
+    create a socket that accepts a connection then reads lines into a shared queue
+
+    Raises:
+        generic exception for when the socket address already exists
+
+    Notes:
+        implements get_nowait() functionality of a python Queue
+    """
+
     def __init__(self, socket_filepath, strip_ansi=False):
         """
         Args:
@@ -95,7 +109,7 @@ class UnixSocketQueue:
     def get_nowait(self):
         try:
             line = self.data.get_nowait()
-        except Exception as e:
+        except queue.Empty:
             raise
         else:
             return line
@@ -114,7 +128,7 @@ if __name__ == "__main__":
 
         try:
             line = unixSocketQueue.data.get_nowait()
-        except:
+        except queue.Empty:
             pass
         else:
             print(line)
