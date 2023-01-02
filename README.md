@@ -65,5 +65,13 @@ if __name__ == "__main__":
             print(next_line)
 ```
 
+# UnixSocketQueue
+A queue that creates a unix socket and listens for a (single) connection
+that when made fills the queue with the line by line output.
+See code for example usage.
+
+# StdinQueue
+TBA
+
 References:
 [1] https://docs.python.org/3/library/subprocess.html#subprocess.Popen.stderr
