@@ -70,6 +70,9 @@ class _SocketListener:
             shared_queue: shared queue
             socket: socket object (not listening, not connected)
             strip_ansi: flag to strip ansi escape codes before adding lines to queue
+
+        Raises:
+            BrokenPipeError: when connection is closed on other end
         """
         self.shared_queue = shared_queue
         self.socket = socket
@@ -96,6 +99,8 @@ class _SocketListener:
         conn, accept = self.socket.accept()
         while True:
             data_received = conn.recv(4096)
+            if len(data_received) == 0:
+                raise BrokenPipeError
             text_received = data_received.decode("utf-8")
             self.buffer.write(text_received)
             self._parse_buffer()
@@ -144,15 +149,23 @@ class UnixSocketQueue:
         self.data = multiprocessing.Queue()
 
         socketListener = _SocketListener(self.data, self.socket_obj, strip_ansi)
-        process = multiprocessing.Process(target=socketListener, daemon=True)
-        process.start()
+        self.process = multiprocessing.Process(target=socketListener, daemon=True)
+        self.process.start()
 
     def get_nowait(self):
         # call wrapped queue's get_nowait method and return result or re-raise exception
         try:
             line = self.data.get_nowait()
         except queue.Empty:
-            raise
+            if self.process.exitcode is not None:
+                try:
+                    self.process.join()  # capture any exceptions
+                except BrokenPipeError:
+                    raise  # BrokenPipeError
+                else:
+                    raise  # queue.Empty or something unforeseen
+            else:
+                raise  # queue.Empty implying connection still good just empty queue
         else:
             return line
 
