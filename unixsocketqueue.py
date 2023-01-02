@@ -75,7 +75,7 @@ class UnixSocketQueue:
     create a socket that accepts a connection then reads lines into a shared queue
 
     Raises:
-        generic exception for when the socket address already exists
+        FileExistsError for when the socket address already exists
 
     Notes:
         implements get_nowait() functionality of a python Queue
@@ -109,6 +109,7 @@ class UnixSocketQueue:
         process.start()
 
     def get_nowait(self):
+        # call wrapped queue's get_nowait method and return result or re-raise exception
         try:
             line = self.data.get_nowait()
         except queue.Empty:
@@ -124,7 +125,7 @@ class UnixSocketQueue:
 
 
 if __name__ == "__main__":
-    unixSocketQueue = UnixSocketQueue("/tmp/blah13")
+    unixSocketQueue = UnixSocketQueue("/tmp/golemsp.sock")
 
     while True:
         import time
