@@ -21,6 +21,24 @@ import queue  # queue.empty
 """
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+if os.environ.get("KRUNCH3R") is not None:
+    logger.setLevel(logging.DEBUG)
+else:
+    logger.setLevel(logging.CRITICAL)
+
+
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    style="{", fmt="[{filename}:{funcName}:{lineno}] {message}"
+)
+handler.setFormatter(formatter)
+
+logger.addHandler(handler)
+
+
 def _strip_ansi(text):
     # strip ansi codes from text and return
     # credit. chat.openai.com
@@ -100,7 +118,7 @@ class UnixSocketQueue:
         self.socket_obj.bind(str(self.socket_filepath_obj))
 
         if self.socket_filepath_obj.is_socket():
-            print(f"socket created: {self.socket_filepath_obj}")
+            logger.log(logging.DEBUG, f"socket created: {self.socket_filepath_obj}")
 
         self.data = multiprocessing.Queue()
 
