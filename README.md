@@ -67,8 +67,20 @@ if __name__ == "__main__":
 
 # UnixSocketQueue
 A queue that creates a unix socket and listens for a (single) connection
-that when made fills the queue with the line by line output.
-See code for example usage.
+or connects to an existing unix socket (multiply) that is already listening;
+fills the queue with the line by line output.
+
+## as server
+```bash
+$ python3 main.py # instantiates with whether_server=True #default
+$ golemsp run --payment-network testnet 2>&1 | tee  >(nc -U /tmp/golemsp.sock)
+```
+
+## as client
+```bash
+$ golemsp run --payment-network testnet 2>&1 | tee  >(nc --keep-open -lU /tmp/golemsp.sock)
+$ python3 main.py # instantiates queue with whether_server=False
+```
 
 # StdinQueue
 TBA
