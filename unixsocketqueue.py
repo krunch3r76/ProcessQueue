@@ -6,7 +6,7 @@
 
 """
     functor 
-        creates a unix socket for listening
+        creates a unix socket for listening or connect to existing
         manages a multiprocess that continuously reads from the unix socket
             reads chunk
             parses lines
@@ -64,13 +64,20 @@ def _strip_ansi(text):
 class _SocketListener:
     # functor that reads socket data into a buffer and parses lines into a (shared) queue
 
-    def __init__(self, shared_queue: multiprocessing.Queue, socket, strip_ansi):
+    def __init__(
+        self,
+        shared_queue: multiprocessing.Queue,
+        socket,
+        addr,
+        whether_server,
+        strip_ansi,
+    ):
         """
         Args:
             shared_queue: shared queue
             socket: socket object (not listening, not connected)
             strip_ansi: flag to strip ansi escape codes before adding lines to queue
-
+            addr: the socket address (filepath object)
         Raises:
             BrokenPipeError: when connection is closed on other end
         """
@@ -78,6 +85,8 @@ class _SocketListener:
         self.socket = socket
         self.buffer = io.StringIO()
         self.strip_ansi = strip_ansi
+        self.addr = addr
+        self.whether_server = whether_server
 
     def _parse_buffer(self):
         # split lines but preserve incomplete line
@@ -95,8 +104,15 @@ class _SocketListener:
 
     def __call__(self):
         # wait for connection then read next available into parser
-        self.socket.listen(1)
-        conn, accept = self.socket.accept()
+        if self.whether_server:
+            self.socket.bind(str(self.addr))
+            if self.addr.is_socket():
+                logger.log(logging.DEBUG, f"socket created: {self.addr}")
+            self.socket.listen(1)
+            conn, accept = self.socket.accept()
+        else:
+            self.socket.connect(str(self.addr))
+            conn = self.socket
         while True:
             data_received = conn.recv(4096)
             if len(data_received) == 0:
@@ -104,6 +120,13 @@ class _SocketListener:
             text_received = data_received.decode("utf-8")
             self.buffer.write(text_received)
             self._parse_buffer()
+
+    def __del__(self):
+        # close and unlink the socket created upon initialization
+        if self.whether_server:
+            if self.addr.is_socket():
+                self.socket.close()
+            self.addr.unlink(True)
 
 
 # /private classes
@@ -125,30 +148,34 @@ class UnixSocketQueue:
         implements get_nowait() functionality of a python Queue
     """
 
-    def __init__(self, socket_filepath, strip_ansi=False):
+    def __init__(self, socket_filepath, whether_server=True, strip_ansi=False):
         """
         Args:
             socket_filepath: stringable object where the socket shall be created
+            whether_server: if true the unix socket is managed as a server and deleted on exit
             strip_ansi: flag to strip ansi before adding a line to the queue
 
         """
         self.strip_ansi = strip_ansi
         self.socket_filepath_obj = Path(socket_filepath).resolve()  # normalize
-
+        self.whether_server = whether_server
         if self.socket_filepath_obj.exists():
-            raise FileExistsError(
-                f"CANNOT CREATE LISTENER AT {self.socket_filepath_obj}, file exists!"
-            )
+            if self.whether_server:
+                raise FileExistsError(
+                    f"CANNOT CREATE SERVER AT {self.socket_filepath_obj}, file exists!"
+                )
 
         self.socket_obj = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.socket_obj.bind(str(self.socket_filepath_obj))
-
-        if self.socket_filepath_obj.is_socket():
-            logger.log(logging.DEBUG, f"socket created: {self.socket_filepath_obj}")
 
         self.data = multiprocessing.Queue()
 
-        socketListener = _SocketListener(self.data, self.socket_obj, strip_ansi)
+        socketListener = _SocketListener(
+            self.data,
+            self.socket_obj,
+            self.socket_filepath_obj,
+            whether_server,
+            strip_ansi,
+        )
         self.process = multiprocessing.Process(target=socketListener, daemon=True)
         self.process.start()
 
@@ -168,12 +195,6 @@ class UnixSocketQueue:
                 raise  # queue.Empty implying connection still good just empty queue
         else:
             return line
-
-    def __del__(self):
-        # close and unlink the socket created upon initialization
-        if self.socket_filepath_obj.is_socket():
-            self.socket_obj.close()
-        self.socket_filepath_obj.unlink(True)
 
 
 #####################################
