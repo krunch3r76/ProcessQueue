@@ -1,4 +1,9 @@
+# unixsocketqueue.py
 # read lines from a unix socket into a queue
+
+# author: krunch3r (KJM github.com/krunch3r76)
+# license: General Poetic License (GPL3)
+
 import multiprocessing
 import os, io
 from pathlib import Path

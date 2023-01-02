@@ -1,3 +1,6 @@
-from processqueue import ProcessQueue
+import os
 
-# from unixsocketqueue import UnixSocketQueue
+from .processqueue import ProcessQueue
+
+if os.name == "posix":
+    from .unixsocketqueue import UnixSocketQueue
