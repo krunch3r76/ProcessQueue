@@ -180,6 +180,11 @@ class UnixSocketQueue:
 #           example logic           #
 #####################################
 if __name__ == "__main__":
+    """
+    after running this main logic, create a unix socket that receives the stdout of
+    a program by combining linux executables tee and ncat ("nc") like so:
+    $ golemsp run --payment-network testnet 2>&1 | tee  >(nc -U /tmp/golemsp.sock)
+    """
     unixSocketQueue = UnixSocketQueue("/tmp/golemsp.sock")
 
     while True:
