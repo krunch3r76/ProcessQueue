@@ -84,8 +84,6 @@ if __name__ == "__main__":
         try:
             line = fileQueue.get_nowait()
         except queue.Empty:
-            pass
+            time.sleep(0.001)
         else:
             print(line)
-        finally:
-            time.sleep(0.001)
