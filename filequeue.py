@@ -2,7 +2,7 @@
 """tail a file to read line by line into a queue
 
 exports FileQueue that wraps a python Queue object exposing get_nowait()
-the queue is filled by all lines the file which is monitored for additional data
+the queue is filled by all lines in the file which is monitored for additional data
 
 author: krunch3r (KJM github.com/krunch3r76)
 license: General Poetic License (GPL3)
