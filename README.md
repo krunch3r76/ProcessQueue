@@ -44,7 +44,7 @@ This implementation works around the standard implementation by reading
 from the file descriptors as soon as data is written to them instead
 of relying on the popen/StreamReader paradigm.
 
-# example usage
+## ProcessQueue example usage
 ```python
 if __name__ == "__main__":
     processQueue = ProcessQueue(
@@ -70,6 +70,8 @@ A queue that creates a unix socket and listens for a (single) connection
 or connects to an existing unix socket (multiply) that is already listening;
 fills the queue with the line by line output.
 
+This is useful when a separation of privileges is required on a local system, where another user is granted access to the unix pipe. It can also be useful to set up a program as a server and run it (and other copies) as clients to handle the simultaneous output differently according to each client's logic. However, UDPSocketQueue would be more practical and flexible when access control to information is not a concern. UnixSocketQueue is here as an alternative.
+
 ## as server
 ```bash
 $ python3 main.py # instantiates with whether_server=True #default
@@ -86,6 +88,9 @@ A queue that reads and tails a file pushing complete lines. Useful for parsing o
 
 # StdinQueue
 TBA: A queue that reads text piped to stdin. Useful to parsing a console program's output realtime.
+
+# UDPSocketQueue
+TBA: A queue that pushes unto itself lines from a udp socket as they become available.
 
 References:
 [1] https://docs.python.org/3/library/subprocess.html#subprocess.Popen.stderr
