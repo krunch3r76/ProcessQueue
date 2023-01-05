@@ -1,5 +1,5 @@
 # ProcessQueue
-A queue that fills with the line by line output of a subprocess.
+A threaded reading queue that fills with the line by line output of a subprocess.
 Upon instantation it runs the command line specified and starts filling
 the queue.
 
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 ```
 
 # UnixSocketQueue
-A queue that creates a unix socket and listens for a (single) connection
+A threaded reading queue that creates a unix socket and listens for a (single) connection
 or connects to an existing unix socket (multiply) that is already listening;
 fills the queue with the line by line output.
 
@@ -84,13 +84,13 @@ $ golemsp run --payment-network testnet 2>&1 | tee  >(nc --keep-open -lU /tmp/go
 $ python3 main.py # instantiates queue with whether_server=False
 ```
 # FileQueue
-A queue that reads and tails a file pushing complete lines. Useful for parsing output piped to a file as by tee -a.
+A threaded reading queue that reads and tails a file pushing complete lines. Useful for parsing output piped to a file as by tee -a.
 
 # StdinQueue
-TBA: A queue that reads text piped to stdin. Useful to parsing a console program's output realtime.
+TBA: A threaded reading queue that reads text piped to stdin. Useful to parsing a console program's output realtime.
 
 # UDPSocketQueue
-TBA: A queue that pushes unto itself lines from a udp socket as they become available.
+TBA: A threaded reading queue that pushes unto itself lines from a udp socket as they become available.
 
 References:
 [1] https://docs.python.org/3/library/subprocess.html#subprocess.Popen.stderr
