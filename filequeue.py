@@ -1,5 +1,5 @@
 # filequeue.py
-"""tail a file to read line by line into a queue
+"""tail a file in a separate thread to read line by line into a shared queue
 
 exports FileQueue that wraps a python Queue object exposing get_nowait()
 the queue is filled by all lines in the file which is monitored for additional data
