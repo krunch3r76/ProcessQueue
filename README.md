@@ -81,9 +81,11 @@ $ golemsp run --payment-network testnet 2>&1 | tee  >(nc -U /tmp/golemsp.sock)
 $ golemsp run --payment-network testnet 2>&1 | tee  >(nc --keep-open -lU /tmp/golemsp.sock)
 $ python3 main.py # instantiates queue with whether_server=False
 ```
+# FileQueue
+A queue that reads and tails a file pushing complete lines. Useful for parsing output piped to a file as by tee -a.
 
 # StdinQueue
-TBA
+TBA: A queue that reads text piped to stdin. Useful to parsing a console program's output realtime.
 
 References:
 [1] https://docs.python.org/3/library/subprocess.html#subprocess.Popen.stderr
