@@ -12,6 +12,7 @@ license: General Poetic License (GPL3)
 from pathlib import Path
 import multiprocessing
 import io
+import time
 
 
 class ReadLineBuffer:
@@ -33,12 +34,11 @@ class ReadLineBuffer:
 
         invokes the callback set on initialization for each complete line
         """
-        # read lines
+
         while True:
-            readBytes = self._targetBinaryFile.read()
-            if len(readBytes) == 0:
-                time.sleep(0.001)
-                continue
+            time.sleep(0.01)
+            readBytes = self._targetBinaryFile.read()  # todo enforce blocking?
+            self._data.seek(0, 2)  # append to end
             self._data.write(readBytes.decode("utf-8"))
             self._data.seek(0)  # read from start
             value = self._data.getvalue()
@@ -51,6 +51,7 @@ class ReadLineBuffer:
                 self._data = io.StringIO()
                 if not lines[-1].endswith("\n"):
                     self._data.write(lines[-1])
+                    self._data.flush()
 
 
 class FileQueue:
