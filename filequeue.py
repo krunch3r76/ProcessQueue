@@ -34,16 +34,23 @@ class ReadLineBuffer:
         invokes the callback set on initialization for each complete line
         """
         # read lines
-        self._data.write(self._targetBinaryFile.read().decode("utf-8"))
-        self._data.seek(0)  # read from start
-        value = self._data.getvalue()
-        lines = value.splitlines(keepends=True)
-        for current_line in lines:
-            if current_line.endswith("\n"):
-                self._on_complete_line(current_line[:-1])
-        self._data.close()
-        self._data = io.StringIO()
-        self._data.write(current_line)
+        while True:
+            readBytes = self._targetBinaryFile.read()
+            if len(readBytes) == 0:
+                time.sleep(0.001)
+                continue
+            self._data.write(readBytes.decode("utf-8"))
+            self._data.seek(0)  # read from start
+            value = self._data.getvalue()
+            lines = value.splitlines(keepends=True)
+            if len(lines) > 0:
+                for current_line in lines:
+                    if current_line.endswith("\n"):
+                        self._on_complete_line(current_line[:-1])
+                self._data.close()
+                self._data = io.StringIO()
+                if not lines[-1].endswith("\n"):
+                    self._data.write(lines[-1])
 
 
 class FileQueue:
